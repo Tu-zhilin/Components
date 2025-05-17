@@ -24,13 +24,24 @@ static void oled_send_byte(struct oled_driver_t *oled, uint8_t data, uint8_t typ
 /// @brief 刷新屏幕
 static void oled_display_refresh(struct oled_driver_t *oled)
 {
-	
+		uint8_t x,y;
+		for(y = 0; y < 8; y++)
+		{
+				oled_send_byte(oled, 0xb0 | y, OLED_SLAVE_COMMAND);
+				oled_send_byte(oled, 0x00, 		 OLED_SLAVE_COMMAND);
+				oled_send_byte(oled, 0x10, 		 OLED_SLAVE_COMMAND);
+
+				for(x = 0; x < 128; x++)
+				{
+						oled_send_byte(oled, oled->vitual_ram[x][y],  OLED_SLAVE_DATA);
+				}
+		}
 }
 
 /// @brief 清屏 
 static void oled_display_clear(struct oled_driver_t *oled)
 {
-    memset(oled->vitual_ram, 0x00, sizeof(128 * 8));
+    memset(oled->vitual_ram, 0x00, 128 * 8);
 		oled_display_refresh(oled);
 }
 
@@ -50,19 +61,103 @@ static void oled_display_close(struct oled_driver_t *oled)
 		oled_send_byte(oled, 0x10, OLED_SLAVE_COMMAND);  
 }
 
-static void oled_show(uint32_t x, 
+static void oled_fill_point(struct oled_driver_t *oled, uint32_t x, uint32_t y, uint8_t data)
+{
+		uint8_t x_byte, y_byte, y_bit;
+	
+		x_byte = x;
+		y_byte = y / 8;
+		y_bit = y % 8;
+	
+		if(data)
+		{
+				oled->vitual_ram[x_byte][y_byte] |= (1 << y_bit);
+		}
+		else
+		{
+				oled->vitual_ram[x_byte][y_byte] &= ~(1 << y_bit);
+		}
+}
+
+
+static void oled_show_column_row(struct oled_driver_t *oled,
+																 uint32_t x, 
+																 uint32_t y, 
+																 uint8_t *buffer, 
+																 uint8_t buffer_size, 
+																 uint32_t width, 
+																 uint32_t high,  
+																 enum oled_module_direct_t direct)
+{
+		uint8_t _x, _y, _cnt, i;
+	  uint8_t *buffer_ptr = buffer;
+	
+		for(_cnt = 0; _cnt < (high / 8); _cnt++)
+		{
+			for(_x = x; _x < (x + width); _x++)
+			{
+				  _y = y + _cnt * 8;
+				
+					for(i = 0; i < 8; i++,_y++)
+					{
+							if(direct == OLED_MODULE_MSB)
+							{
+									oled_fill_point(oled, _x, _y, ((*buffer_ptr >> (7 - i)) & 0x01));
+							}
+							else
+							{
+									oled_fill_point(oled, _x, _y, ((*buffer_ptr >> i) & 0x01));
+							}
+					}
+					buffer_ptr++;
+			}
+		}
+}
+
+/*
+* oled_show
+* x: 横坐标起点
+* y: 纵坐标七点
+* buffer: 数据
+* buffer_size: 数据个数
+* width: 横向长度（像素点）
+* heigh: 纵向长度（像素点）
+* mode: 取模模式
+* direct: 取模方向
+*/
+static void oled_show(struct oled_driver_t *oled,
+											uint32_t x, 
 											uint32_t y, 
 											uint8_t *buffer, 
-											uint8_t buffer_size, 
+											uint32_t buffer_size, 
 											uint32_t width, 
 											uint32_t high, 
 											enum oled_module_mode_t mode, 
 											enum oled_module_direct_t direct)
 {
-	
+		if((x + width > 128) || 
+			 (y + high > 64) ||
+		   (high % 8 != 0) ||
+		   (width * (high / 8) != buffer_size))
+		{
+				return;
+		}
+
+		switch(mode)
+		{
+				case OLED_MODULE_MODE_1: //TODO:
+					break;
+				case OLED_MODULE_MODE_2: //TODO: 
+					break;
+				case OLED_MODULE_MODE_3: /* 行列式 */
+					oled_show_column_row(oled, x, y, buffer, buffer_size, width, high, direct);
+					break;
+				case OLED_MODULE_MODE_4: //TODO:
+					break;
+				default:
+					return;
+		}
 }
-
-
 
 static void oled_init(struct oled_driver_t *oled)
 {

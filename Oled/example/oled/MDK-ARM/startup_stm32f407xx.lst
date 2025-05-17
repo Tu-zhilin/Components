@@ -835,11 +835,11 @@ re/Inc -I../Drivers/STM32F4xx_HAL_Driver/Inc -I../Drivers/STM32F4xx_HAL_Driver/
 Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middleware
 s/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 -I../Middlewares/Third_Party/FreeRT
 OS/Source/portable/RVDS/ARM_CM4F -I../Drivers/CMSIS/Device/ST/STM32F4xx/Include
- -I../Drivers/CMSIS/Include -ID:\Coding\code\oled\example\oled\MDK-ARM\RTE -ID:
-\Keil5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include -ID:\Keil5\ARM\PACK\Keil\STM32F4x
-x_DFP\1.0.8\Device\Include --predefine="__MICROLIB SETA 1" --predefine="__UVISI
-ON_VERSION SETA 514" --predefine="_RTE_ SETA 1" --predefine="STM32F40_41xxx SET
-A 1" --list=startup_stm32f407xx.lst startup_stm32f407xx.s
+ -I../Drivers/CMSIS/Include -ID:\Coding\code\Components\Oled\example\oled\MDK-A
+RM\RTE -ID:\Keil5\ARM\PACK\ARM\CMSIS\4.2.0\CMSIS\Include -ID:\Keil5\ARM\PACK\Ke
+il\STM32F4xx_DFP\1.0.8\Device\Include --predefine="__MICROLIB SETA 1" --predefi
+ne="__UVISION_VERSION SETA 514" --predefine="_RTE_ SETA 1" --predefine="STM32F4
+0_41xxx SETA 1" --list=startup_stm32f407xx.lst startup_stm32f407xx.s
 
 
 

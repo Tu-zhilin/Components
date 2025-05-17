@@ -73,16 +73,20 @@ static void simulate_i2c_sendByte(struct i2c_driver_t *driver, uint8_t Byte)
 	simulate_i2c_waitAck(driver);
 }
 
-void i2c_simulate_drivers_init(struct i2c_driver_t *driver, struct i2c_driver_config_t *config)
+static void simulate_i2c_init(struct i2c_driver_t *driver)
 {
-		driver->start = simulate_i2c_start;
-		driver->stop = simulate_i2c_stop;
-		driver->sendByte = simulate_i2c_sendByte;
-	  driver->config = config;
-	
 		driver->config->set_scl(1);
 		delay(I2C_SIMULATION_DELAY_TIME);
 		driver->config->set_sda(1);
 		delay(I2C_SIMULATION_DELAY_TIME);
+}
+
+void i2c_simulate_drivers_init(struct i2c_driver_t *driver, struct i2c_driver_config_t *config)
+{
+		driver->init = simulate_i2c_init;
+		driver->start = simulate_i2c_start;
+		driver->stop = simulate_i2c_stop;
+		driver->sendByte = simulate_i2c_sendByte;
+	  driver->config = config;
 }
 

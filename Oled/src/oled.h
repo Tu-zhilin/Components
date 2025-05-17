@@ -17,8 +17,8 @@ enum oled_module_mode_t
 
 enum oled_module_direct_t
 {
-	OLED_MODULE_FORWARD,
-	OLED_MODULE_REVERSE,
+	OLED_MODULE_MSB,
+	OLED_MODULE_LSB,
 };
 
 struct oled_driver_t
@@ -28,10 +28,11 @@ struct oled_driver_t
 	void(*close)(struct oled_driver_t *oled);
 	void(*refresh)(struct oled_driver_t *oled);
 	void(*clear)(struct oled_driver_t *oled);
-	void(*show)(uint32_t x, 
+	void(*show)(struct oled_driver_t *oled,
+						  uint32_t x, 
 							uint32_t y, 
 							uint8_t *buffer, 
-							uint8_t buffer_size, 
+							uint32_t buffer_size, 
 							uint32_t width, 
 							uint32_t high, 
 							enum oled_module_mode_t mode, 

@@ -12,6 +12,7 @@ struct i2c_driver_config_t
 
 struct i2c_driver_t
 {
+		void(*init)(struct i2c_driver_t *driver);
     void(*start)(struct i2c_driver_t *driver);
     void(*stop)(struct i2c_driver_t *driver);
     void(*sendByte)(struct i2c_driver_t *driver, uint8_t data);

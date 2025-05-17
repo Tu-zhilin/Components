@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "i2c.h"
 #include "oled.h"
+#include "oled_bitmap.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -141,13 +142,21 @@ void StartDefaultTask(void *argument)
 	
 	oled_ssd1306_i2c_init(&oled, &i2c_driver);
 	oled.init(&oled);
+	oled.open(&oled);
 	
   for(;;)
   {
-		oled.open(&oled);
-    osDelay(3000);
-		oled.close(&oled);
-		osDelay(3000);
+		 uint8_t i = 0;
+		
+		 oled.clear(&oled);
+		 osDelay(1000);
+		
+		 for(i = 0; i < 10; i++)
+		 {
+			  oled.show(&oled, 0 + 8 * i, 0, (uint8_t *)ASCII_8x16_bitmap[16 + i], 16, 8, 16, OLED_MODULE_MODE_3, OLED_MODULE_LSB);
+			  oled.refresh(&oled);
+			  osDelay(1000);
+		 }
   }
   /* USER CODE END StartDefaultTask */
 }
