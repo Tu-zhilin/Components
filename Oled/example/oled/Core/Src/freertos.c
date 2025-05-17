@@ -122,23 +122,32 @@ void set_sda(uint8_t level)
 		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_5, (GPIO_PinState)(level));
 }
 
+struct i2c_driver_t i2c_driver;
+struct i2c_driver_config_t config = 
+{
+		.set_scl = set_scl,
+		.set_sda = set_sda
+};
+
+struct oled_driver_t oled;
+
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-	struct i2c_driver_t i2c_driver;
-	struct i2c_driver_config_t config = 
-	{
-			.set_scl = set_scl,
-			.set_sda = set_sda
-	};
-	
+
 	i2c_simulate_drivers_init(&i2c_driver, &config);
-	oled_driver.init(&i2c_driver);
+	i2c_driver.init(&i2c_driver);
+	
+	oled_ssd1306_i2c_init(&oled, &i2c_driver);
+	oled.init(&oled);
 	
   for(;;)
   {
-    osDelay(1);
+		oled.open(&oled);
+    osDelay(3000);
+		oled.close(&oled);
+		osDelay(3000);
   }
   /* USER CODE END StartDefaultTask */
 }
