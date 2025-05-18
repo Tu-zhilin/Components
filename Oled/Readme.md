@@ -72,22 +72,90 @@
 | ------ | ---- | -------------------------------- | ---- |
 | 电荷泵 | 0x8D | 0x1X（bit2 - 1：开启   0：关闭） |      |
 
-### 4. 软件实现
+## 4. 软件实现
 
-### 4.1 初始化流程
+### 4.1 oled 对象构建
 
-如下图所示顺序用于初始化配置，实际配置可以根据实际需求进行调整。
+下图所示为oled驱动对象。
+
+```c
+struct oled_driver_t
+{
+	void(*init)(struct oled_driver_t *oled);
+	void(*open)(struct oled_driver_t *oled);
+	void(*close)(struct oled_driver_t *oled);
+	void(*refresh)(struct oled_driver_t *oled);
+	void(*clear)(struct oled_driver_t *oled);
+	void(*show)(struct oled_driver_t *oled,
+						  uint32_t x, 
+							uint32_t y, 
+							uint8_t *buffer, 
+							uint32_t buffer_size, 
+							uint32_t width, 
+							uint32_t high, 
+							enum oled_module_mode_t mode, 
+							enum oled_module_direct_t direct);
+	struct i2c_driver_t *driver;
+	uint8_t vitual_ram[128][8]; /* 后面再将这个做成用户实现的配置项 */
+};
+```
+
+oled驱动对象初始化如下所示：oled对象句柄用户持有，调用oled_ssd1306_i2c_init进行初始化，同时需传入i2c驱动进行绑定。
+
+```c
+struct oled_driver_t oled;
+
+oled_ssd1306_i2c_init(&oled, &i2c_driver);
+```
+
+### 4.2 oled 初始化
+
+调用如下接口进行oled驱动初始化。
+
+```c
+oled.init(&oled);
+```
+
+初始化接口中的内容如下图所示，按照下述指令对oled进行配置。`实际配置可以根据实际需求进行调整`
 
 ![34604d58bd5bb9d24164e44a122a72e2](doc/image/34604d58bd5bb9d24164e44a122a72e2.png)
 
-### 4.2 内容显示
+### 4.3 内容显示
 
-内容显示就是将数据填入到“显存”中。
+内容显示就是将数据填入到“显存”z中。
 
-如下图所示，字符'A'会生成如下一串数据，该数据就字模，每个数据中1和0用于控制亮灭。
+如下图所示，利用字模生成软件，字符'A'会生成如下一串数据，该数据就字模，每个数据中1和0用于控制亮灭。
 
-![image-20250511124438375](doc/image/image-20250511124438375.png)
+![shengcimage-20250511124438375](./doc/image/image-20250511124438375.png)
 
-#### 4.2.1 字模
+如下图所示，我们使用取模软件的时候，我们需要设置一些配置项：
 
-#### 4.2.2 图片
+* 点阵格式：
+  * 阴码：0（灭）1（亮）
+  * 阳码：0（亮）1（灭）
+* 取模方式：表示每个字模数据取模的方式
+* 取模走向：字模的大小端
+
+![屏幕截图 2025-05-18 102032](./doc/image/屏幕截图 2025-05-18 102032.png)
+
+oled驱动已经将上面的配置做进去了，如下定义的枚举所示，
+
+```c
+enum oled_module_mode_t
+{
+	OLED_MODULE_MODE_1,	/* 逐行式 */
+	OLED_MODULE_MODE_2, /* 逐列式 */
+	OLED_MODULE_MODE_3,	/* 列行式 */
+	OLED_MODULE_MODE_4, /* 行列式 */
+};
+
+enum oled_module_direct_t
+{
+	OLED_MODULE_MSB, /* 顺向 */
+	OLED_MODULE_LSB, /* 逆向 */
+};
+
+/* 通过如下代码将内容输出到oled，传入的mode和direct参数需要根据生成字模的配置相同 */ 
+oled.show(&oled, 0, 0, (uint8_t *)ASCII_8x16_bitmap[16], 16, 8, 16, OLED_MODULE_MODE_3, OLED_MODULE_LSB);
+```
+
